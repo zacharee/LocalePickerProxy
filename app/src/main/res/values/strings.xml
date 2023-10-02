@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Locale Picker</string>
+
+    <string name="search">Search</string>
+    <string name="clear">Clear</string>
+    <string name="close">Close</string>
 </resources>

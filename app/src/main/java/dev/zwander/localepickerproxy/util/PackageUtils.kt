@@ -10,8 +10,9 @@ import android.content.res.AssetManager
 import android.net.Uri
 import android.os.LocaleList
 import android.provider.Settings
+import dev.zwander.localepickerproxy.data.LabeledApplicationInfo
 
-fun Context.getAllAppsSupportingLocales(): List<ApplicationInfo> {
+fun Context.getAllAppsSupportingLocales(): List<LabeledApplicationInfo> {
     return getAllAppsWithLauncherActivities().filter {
         appSupportsLocales(it) && !it.isAppSignedWithPlatformKey()
     }
@@ -25,14 +26,15 @@ fun Context.launchLocaleSettingsForApp(app: ApplicationInfo) {
     startActivity(intent)
 }
 
-private fun Context.getAllAppsWithLauncherActivities(): List<ApplicationInfo> {
+private fun Context.getAllAppsWithLauncherActivities(): List<LabeledApplicationInfo> {
     return packageManager.queryIntentActivities(
         Intent(Intent.ACTION_MAIN)
             .addCategory(Intent.CATEGORY_LAUNCHER),
         PackageManager.GET_META_DATA,
     ).map { it.activityInfo.applicationInfo }
         .distinctBy { it.packageName }
-        .sortedBy { it.loadLabel(packageManager).toString().lowercase() }
+        .map { LabeledApplicationInfo(it, this) }
+        .sortedBy { it.label.toString().lowercase() }
 }
 
 private fun Context.appSupportsLocales(app: ApplicationInfo): Boolean {
