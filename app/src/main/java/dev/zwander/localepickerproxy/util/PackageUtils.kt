@@ -1,5 +1,6 @@
 package dev.zwander.localepickerproxy.util
 
+import android.annotation.SuppressLint
 import android.app.LocaleConfig
 import android.content.Context
 import android.content.Intent
@@ -9,6 +10,7 @@ import android.content.res.AssetManager
 import android.net.Uri
 import android.os.LocaleList
 import android.provider.Settings
+import android.util.Log
 
 fun Context.getAllAppsSupportingLocales(): List<ApplicationInfo> {
     return getAllAppsWithLauncherActivities().filter {
@@ -38,13 +40,21 @@ private fun Context.appSupportsLocales(app: ApplicationInfo): Boolean {
         return !it.isEmpty
     }
 
+    if (isFeatureEnabled("settings_app_locale_opt_in_enabled")) {
+        return false
+    }
+
     return getAssetLocales(app).isNotEmpty()
 }
 
 private fun Context.getAssetLocales(app: ApplicationInfo): Array<String> {
     val resources = packageManager.getResourcesForApplication(app)
 
-    return resources.assets.getNonSystemLocales()
+    return resources.assets.getNonSystemLocales().also {
+        if (app.packageName.contains("teamviewer")) {
+            Log.e("LocalePicker", "Asset Locales ${it.contentToString()}")
+        }
+    }
 }
 
 private fun Context.getPackageLocales(app: ApplicationInfo): LocaleList? {
@@ -52,7 +62,11 @@ private fun Context.getPackageLocales(app: ApplicationInfo): LocaleList? {
         val config = LocaleConfig(createPackageContext(app.packageName, 0))
 
         if (config.status == LocaleConfig.STATUS_SUCCESS) {
-            return config.supportedLocales
+            return config.supportedLocales.also {
+                if (app.packageName.contains("teamviewer")) {
+                    Log.e("LocalePicker", "Package Locales ${it?.toLanguageTags()}")
+                }
+            }
         }
     } catch (_: PackageManager.NameNotFoundException) {}
 
@@ -70,4 +84,11 @@ private fun AssetManager.getNonSystemLocales(): Array<String> {
     return AssetManager::class.java
         .getMethod("getNonSystemLocales")
         .invoke(this) as Array<String>
+}
+
+@SuppressLint("PrivateApi")
+private fun Context.isFeatureEnabled(feature: String): Boolean {
+    return Class.forName("android.util.FeatureFlagUtils")
+        .getMethod("isEnabled", Context::class.java, String::class.java)
+        .invoke(null, this, feature) as Boolean
 }
