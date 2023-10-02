@@ -1,7 +1,6 @@
 package dev.zwander.localepickerproxy
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.Crossfade
@@ -18,8 +17,8 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pullrefresh.PullRefreshIndicator
@@ -31,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,11 +45,12 @@ import dev.zwander.localepickerproxy.data.LabeledApplicationInfo
 import dev.zwander.localepickerproxy.ui.theme.LocalePickerProxyTheme
 import dev.zwander.localepickerproxy.util.getAllAppsSupportingLocales
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val context = LocalContext.current
+            val scope = rememberCoroutineScope()
 
             var apps by remember {
                 mutableStateOf(listOf<LabeledApplicationInfo>())
@@ -77,9 +79,11 @@ class MainActivity : ComponentActivity() {
             }
 
             val mutualNonTopWindowInsets = if (WindowInsets.isImeVisible) {
-                WindowInsets.ime.add(WindowInsets.systemBars.only(
-                    WindowInsetsSides.End + WindowInsetsSides.Start,
-                ))
+                WindowInsets.ime.add(
+                    WindowInsets.systemBars.only(
+                        WindowInsetsSides.End + WindowInsetsSides.Start,
+                    )
+                )
             } else {
                 WindowInsets.systemBars.only(
                     WindowInsetsSides.Bottom + WindowInsetsSides.End + WindowInsetsSides.Start,
@@ -89,10 +93,8 @@ class MainActivity : ComponentActivity() {
             val contentPadding = mutualNonTopWindowInsets
                 .add(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                 .add(WindowInsets(8.dp, 8.dp, 8.dp, 8.dp))
-                .add(WindowInsets(bottom = with (LocalDensity.current) { searchBarHeight.toDp() }))
+                .add(WindowInsets(bottom = with(LocalDensity.current) { searchBarHeight.toDp() }))
                 .asPaddingValues()
-
-            Log.e("LocalePicker", "ContentPadding $contentPadding")
 
             val pullRefreshState = rememberPullRefreshState(
                 refreshing = isRefreshing,
@@ -100,6 +102,8 @@ class MainActivity : ComponentActivity() {
                     isRefreshing = true
                 }
             )
+
+            val listState = rememberLazyListState()
 
             val filteredApps by remember {
                 derivedStateOf {
@@ -143,6 +147,7 @@ class MainActivity : ComponentActivity() {
                                 AppList(
                                     apps = filteredApps,
                                     contentPadding = contentPadding,
+                                    listState = listState,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .pullRefresh(state = pullRefreshState),
@@ -157,6 +162,13 @@ class MainActivity : ComponentActivity() {
                                 SearchBar(
                                     text = searchTerm,
                                     onTextChange = { text -> searchTerm = text },
+                                    onScrollToTop = {
+                                        scope.launch {
+                                            if (filteredApps.isNotEmpty()) {
+                                                listState.animateScrollToItem(0)
+                                            }
+                                        }
+                                    },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .align(Alignment.BottomCenter)

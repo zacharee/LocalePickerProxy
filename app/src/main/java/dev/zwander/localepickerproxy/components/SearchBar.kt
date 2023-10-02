@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import dev.zwander.localepickerproxy.R
 fun SearchBar(
     text: String,
     onTextChange: (String) -> Unit,
+    onScrollToTop: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
@@ -51,7 +53,7 @@ fun SearchBar(
                 .fillMaxWidth()
                 .padding(8.dp)
                 .focusRequester(focusRequester),
-            trailingIcon = {
+            leadingIcon = {
                 IconButton(
                     onClick = {
                         if (text.isNotEmpty()) {
@@ -66,6 +68,14 @@ fun SearchBar(
                         contentDescription = stringResource(
                             id = if (text.isNotEmpty()) R.string.clear else R.string.close
                         ),
+                    )
+                }
+            },
+            trailingIcon = {
+                IconButton(onClick = onScrollToTop) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = stringResource(id = R.string.scroll_to_top),
                     )
                 }
             },
