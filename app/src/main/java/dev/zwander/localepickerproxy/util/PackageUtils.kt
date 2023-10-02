@@ -10,7 +10,6 @@ import android.content.res.AssetManager
 import android.net.Uri
 import android.os.LocaleList
 import android.provider.Settings
-import android.util.Log
 
 fun Context.getAllAppsSupportingLocales(): List<ApplicationInfo> {
     return getAllAppsWithLauncherActivities().filter {
@@ -50,11 +49,7 @@ private fun Context.appSupportsLocales(app: ApplicationInfo): Boolean {
 private fun Context.getAssetLocales(app: ApplicationInfo): Array<String> {
     val resources = packageManager.getResourcesForApplication(app)
 
-    return resources.assets.getNonSystemLocales().also {
-        if (app.packageName.contains("teamviewer")) {
-            Log.e("LocalePicker", "Asset Locales ${it.contentToString()}")
-        }
-    }
+    return resources.assets.getNonSystemLocales()
 }
 
 private fun Context.getPackageLocales(app: ApplicationInfo): LocaleList? {
@@ -62,11 +57,7 @@ private fun Context.getPackageLocales(app: ApplicationInfo): LocaleList? {
         val config = LocaleConfig(createPackageContext(app.packageName, 0))
 
         if (config.status == LocaleConfig.STATUS_SUCCESS) {
-            return config.supportedLocales.also {
-                if (app.packageName.contains("teamviewer")) {
-                    Log.e("LocalePicker", "Package Locales ${it?.toLanguageTags()}")
-                }
-            }
+            return config.supportedLocales
         }
     } catch (_: PackageManager.NameNotFoundException) {}
 
