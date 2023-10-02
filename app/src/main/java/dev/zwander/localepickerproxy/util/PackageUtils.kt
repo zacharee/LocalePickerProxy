@@ -19,6 +19,7 @@ fun Context.getAllAppsSupportingLocales(): List<ApplicationInfo> {
 
 fun Context.launchLocaleSettingsForApp(app: ApplicationInfo) {
     val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     intent.data = Uri.parse("package:${app.packageName}")
 
     startActivity(intent)
