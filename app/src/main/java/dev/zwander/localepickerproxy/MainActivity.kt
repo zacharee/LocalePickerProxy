@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.pullrefresh.PullRefreshIndicator
+import androidx.compose.material3.pullrefresh.pullRefresh
+import androidx.compose.material3.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,9 +44,23 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(listOf<ApplicationInfo>())
             }
 
-            LaunchedEffect(key1 = null) {
-                apps = withContext(Dispatchers.IO) {
-                    context.getAllAppsSupportingLocales()
+            var isRefreshing by remember {
+                mutableStateOf(true)
+            }
+
+            val pullRefreshState = rememberPullRefreshState(
+                refreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                }
+            )
+
+            LaunchedEffect(key1 = isRefreshing) {
+                if (isRefreshing) {
+                    apps = withContext(Dispatchers.IO) {
+                        context.getAllAppsSupportingLocales()
+                    }
+                    isRefreshing = false
                 }
             }
 
@@ -53,7 +70,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Crossfade(
-                        targetState = apps.isEmpty(),
+                        targetState = isRefreshing,
                         label = "MainFade",
                     ) {
                         if (it) {
@@ -64,10 +81,22 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         } else {
-                            AppList(
-                                apps = apps,
+                            Box(
                                 modifier = Modifier.fillMaxSize(),
-                            )
+                            ) {
+                                AppList(
+                                    apps = apps,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .pullRefresh(state = pullRefreshState),
+                                )
+
+                                PullRefreshIndicator(
+                                    refreshing = false,
+                                    state = pullRefreshState,
+                                    modifier = Modifier.align(Alignment.TopCenter),
+                                )
+                            }
                         }
                     }
                 }
