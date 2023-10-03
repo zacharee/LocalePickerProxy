@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -50,7 +48,6 @@ import kotlinx.coroutines.withContext
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,6 +58,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val context = LocalContext.current
             val scope = rememberCoroutineScope()
+            val density = LocalDensity.current
 
             var apps by remember {
                 mutableStateOf(listOf<LabeledApplicationInfo>())
@@ -78,22 +76,19 @@ class MainActivity : ComponentActivity() {
                 mutableIntStateOf(0)
             }
 
-            val mutualNonTopWindowInsets = if (WindowInsets.isImeVisible) {
-                WindowInsets.ime.add(
-                    WindowInsets.systemBars.only(
-                        WindowInsetsSides.End + WindowInsetsSides.Start,
-                    )
-                )
-            } else {
-                WindowInsets.systemBars.only(
-                    WindowInsetsSides.Bottom + WindowInsetsSides.End + WindowInsetsSides.Start,
-                )
-            }
+            val systemBarsBottom = WindowInsets.systemBars.getBottom(density)
+            val imeBottom = WindowInsets.ime.getBottom(density)
 
-            val contentPadding = mutualNonTopWindowInsets
+            val nonTopWindowInsets = WindowInsets.ime.only(
+                    WindowInsetsSides.Start + WindowInsetsSides.End,
+                ).add(WindowInsets.systemBars.only(
+                    WindowInsetsSides.Start + WindowInsetsSides.End,
+                )).add(WindowInsets(bottom = maxOf(systemBarsBottom, imeBottom)))
+
+            val contentPadding = nonTopWindowInsets
                 .add(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                 .add(WindowInsets(8.dp, 8.dp, 8.dp, 16.dp))
-                .add(WindowInsets(bottom = with(LocalDensity.current) { searchBarHeight.toDp() }))
+                .add(WindowInsets(bottom = with(density) { searchBarHeight.toDp() }))
                 .asPaddingValues()
 
             val pullRefreshState = rememberPullRefreshState(
@@ -173,7 +168,7 @@ class MainActivity : ComponentActivity() {
                                         .fillMaxWidth()
                                         .align(Alignment.BottomCenter)
                                         .padding(
-                                            mutualNonTopWindowInsets
+                                            nonTopWindowInsets
                                             .add(WindowInsets(left = 8.dp, right = 8.dp, bottom = 8.dp))
                                             .asPaddingValues()
                                         )
