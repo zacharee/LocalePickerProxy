@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.hiddenapibypass)
     implementation(libs.material)
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
