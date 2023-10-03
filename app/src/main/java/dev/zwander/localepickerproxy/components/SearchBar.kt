@@ -47,8 +47,7 @@ fun SearchBar(
     }
 
     Box(
-        modifier = Modifier
-            .then(modifier)
+        modifier = modifier
             .width(IntrinsicSize.Max)
             .wrapContentHeight()
             .background(
