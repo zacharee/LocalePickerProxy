@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
 
             val contentPadding = mutualNonTopWindowInsets
                 .add(WindowInsets.systemBars.only(WindowInsetsSides.Top))
-                .add(WindowInsets(8.dp, 8.dp, 8.dp, 8.dp))
+                .add(WindowInsets(8.dp, 8.dp, 8.dp, 16.dp))
                 .add(WindowInsets(bottom = with(LocalDensity.current) { searchBarHeight.toDp() }))
                 .asPaddingValues()
 
@@ -172,7 +172,11 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .align(Alignment.BottomCenter)
-                                        .padding(mutualNonTopWindowInsets.asPaddingValues())
+                                        .padding(
+                                            mutualNonTopWindowInsets
+                                            .add(WindowInsets(left = 8.dp, right = 8.dp, bottom = 8.dp))
+                                            .asPaddingValues()
+                                        )
                                         .onSizeChanged { size ->
                                             searchBarHeight = size.height
                                         },

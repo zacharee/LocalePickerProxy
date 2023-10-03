@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,10 +41,13 @@ fun AppItem(
             modifier = Modifier.padding(8.dp),
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(app)
-                    .fetcherFactory(AppIconFetcher.Factory(context))
-                    .build(),
+                model = remember {
+                    ImageRequest.Builder(context)
+                        .data(app)
+                        .fetcherFactory(AppIconFetcher.Factory(context))
+                        .memoryCacheKey(app.packageName)
+                        .build()
+                },
                 contentDescription = app.label.toString(),
                 modifier = Modifier.size(48.dp),
             )
