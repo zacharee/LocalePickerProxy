@@ -1,5 +1,6 @@
 package dev.zwander.localepickerproxy.components
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -63,37 +64,30 @@ fun SearchBar(
                 .focusRequester(focusRequester)
                 .onFocusChanged { isFocused = it.isFocused },
             leadingIcon = {
-                IconButton(
-                    onClick = {
-                        when {
-                            isFocused && text.isNotEmpty() -> {
-                                onTextChange("")
-                            }
-                            isFocused -> {
-                                focusManager.clearFocus()
-                            }
-                            else -> {
-                                focusRequester.requestFocus()
-                            }
-                        }
-                    },
-                ) {
-                    val (image, desc) = when {
-                        isFocused && text.isNotEmpty() -> {
-                            Icons.Default.Clear to R.string.clear
-                        }
-                        isFocused -> {
-                            Icons.Default.KeyboardArrowDown to R.string.close
-                        }
-                        else -> {
-                            Icons.Default.Search to R.string.search
-                        }
+                val buttonProps = when {
+                    isFocused && text.isNotEmpty() -> {
+                        Triple({ onTextChange("") }, Icons.Default.Clear, R.string.clear)
                     }
+                    isFocused -> {
+                        Triple({ focusManager.clearFocus() }, Icons.Default.KeyboardArrowDown, R.string.close)
+                    }
+                    else -> {
+                        Triple({ focusRequester.requestFocus() }, Icons.Default.Search, R.string.search)
+                    }
+                }
 
-                    Icon(
-                        imageVector = image,
-                        contentDescription = stringResource(id = desc),
-                    )
+                Crossfade(
+                    targetState = buttonProps,
+                    label = "SearchCrossfade",
+                ) { (clickAction, image, desc) ->
+                    IconButton(
+                        onClick = clickAction,
+                    ) {
+                        Icon(
+                            imageVector = image,
+                            contentDescription = stringResource(id = desc),
+                        )
+                    }
                 }
             },
             trailingIcon = {
