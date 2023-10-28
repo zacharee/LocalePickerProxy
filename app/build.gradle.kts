@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.hiddenapibypass)
     implementation(libs.material)
     implementation(libs.coil.compose)
+    implementation(libs.squircle.shape)
 
     debugImplementation(libs.ui.tooling)
 }
