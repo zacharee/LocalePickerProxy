@@ -69,6 +69,7 @@ fun AppItem(
 
                 Text(
                     text = app.packageName,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
