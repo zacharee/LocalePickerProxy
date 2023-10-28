@@ -52,7 +52,7 @@ private fun Context.appSupportsLocales(app: ApplicationInfo): Boolean {
 private fun Context.getAssetLocales(app: ApplicationInfo): Array<String> {
     val resources = packageManager.getResourcesForApplication(app)
 
-    return resources.assets.getNonSystemLocales()
+    return resources.assets.getNonSystemLocalesReflection()
 }
 
 private fun Context.getPackageLocales(app: ApplicationInfo): LocaleList? {
@@ -73,7 +73,7 @@ private fun ApplicationInfo.isAppSignedWithPlatformKey(): Boolean {
         .invoke(this) as Boolean
 }
 
-private fun AssetManager.getNonSystemLocales(): Array<String> {
+private fun AssetManager.getNonSystemLocalesReflection(): Array<String> {
     @Suppress("UNCHECKED_CAST")
     return AssetManager::class.java
         .getMethod("getNonSystemLocales")
